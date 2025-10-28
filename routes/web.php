@@ -1,45 +1,23 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PokemonCardController;
+use App\Http\Controllers\RarityController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Home -> kaarten-overzicht
+Route::get('/', [PokemonCardController::class, 'index'])->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-Route::get('/about-us', function() {
-    $company = 'Hogeschool Rotterdam';
-    return view('about-us', [
-        'company' => $company
-    ]);
-});
-
-
-Route::get('products/{macbook}', function(string $macbook) {
-    return view ('products.macbook',
-        ['macbook' => $macbook]);
-//    return view ('products.macbook',compact('macbook'));
-});
-
-
-
-
-Route::get('/contact-us', function() {
-   return view ('This page is contact us');
-});
-
-
-
+// Publiek: alleen index en show
+Route::resource('cards', PokemonCardController::class)->only(['index', 'show']);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Achter login: create/store/edit/update/destroy
+    Route::resource('cards', PokemonCardController::class)->except(['index', 'show']);
+
+    // (Optioneel) Rarities-beheer achter login
+    Route::get('/rarities', [RarityController::class, 'index'])->name('rarities.index');
+    Route::post('/rarities', [RarityController::class, 'store'])->name('rarities.store');
 });
 
-require __DIR__.'/auth.php';
+// Breeze auth routes (login/register/etc.)
+require __DIR__ . '/auth.php';
