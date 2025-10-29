@@ -4,20 +4,23 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PokemonCardController;
 use App\Http\Controllers\RarityController;
 
-// Home -> kaarten-overzicht
+// Home -> overview
 Route::get('/', [PokemonCardController::class, 'index'])->name('home');
 
-// Publiek: alleen index en show
+// Public: index + show
 Route::resource('cards', PokemonCardController::class)->only(['index', 'show']);
 
+// Auth required: create/store/edit/update/destroy
 Route::middleware('auth')->group(function () {
-    // Achter login: create/store/edit/update/destroy
     Route::resource('cards', PokemonCardController::class)->except(['index', 'show']);
 
-    // (Optioneel) Rarities-beheer achter login
+    // optional rarity admin pages
     Route::get('/rarities', [RarityController::class, 'index'])->name('rarities.index');
     Route::post('/rarities', [RarityController::class, 'store'])->name('rarities.store');
 });
 
-// Breeze auth routes (login/register/etc.)
-require __DIR__ . '/auth.php';
+
+
+// Breeze routes
+require __DIR__.'/auth.php';
+require __DIR__.'/profile.php'; // if you added profile routes

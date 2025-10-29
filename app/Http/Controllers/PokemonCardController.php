@@ -53,12 +53,11 @@ class PokemonCardController extends Controller
      * Formulier voor nieuwe kaart.
      * Vereist login.
      */
-    public function create()
-    {
-        $this->mustBeLoggedIn();
-        $rarities = Rarity::orderBy('rank')->orderBy('name')->get();
+    public function create() {
+        $rarities = \App\Models\Rarity::orderBy('rank')->orderBy('name')->get();
         return view('cards.create', compact('rarities'));
     }
+
 
     /**
      * Sla nieuwe kaart op.
