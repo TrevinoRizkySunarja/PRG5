@@ -50,7 +50,7 @@
         </div>
     </form>
 <br>
-    <!-- Registreren CTA -->
+    <!-- Registreren -->
     <div class="mt-8 text-center">
         <span class="text-gray-400 me-2">Nog geen account?  </span>
         <a href="{{ route('register') }}"

@@ -85,7 +85,7 @@
                             {{ optional($card->rarity)->name ?? '—' }}
                         </td>
 
-                        {{-- Omschrijving (truncate) --}}
+                        {{-- Omschrijving  --}}
                         <td class="px-4 py-3">
                             <p class="line-clamp-2 text-sm text-gray-300">
                                 {{ $card->description ?: '—' }}
