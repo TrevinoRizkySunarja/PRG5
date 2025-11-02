@@ -41,6 +41,8 @@ class PokemonCardController extends Controller
 //        $this->middleware('auth')->except(['index','show']);
 //    }
 
+
+
     public function create()
     {
         $rarities = Rarity::orderBy('rank')->get();  // haal alles op

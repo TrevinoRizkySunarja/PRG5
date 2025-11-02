@@ -2,27 +2,33 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Force HTTPS links in local/dev when using Herd/valet-style https.
-        if (app()->environment('local')) {
-            URL::forceScheme('https');
+        // Artisan/CLI? Niets forceren, voorkomt "Invalid URI" bij route:list etc.
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
+        // Alleen forceren als er een geldige APP_URL staat
+        $root = config('app.url'); // komt uit APP_URL
+
+        if (is_string($root) && preg_match('#^https?://#i', $root)) {
+            URL::forceRootUrl($root);
+
+            // Indien je site via HTTPS draait (Herd/Valet), forceer https
+            if (str_starts_with($root, 'https://')) {
+                URL::forceScheme('https');
+            }
         }
     }
 }
