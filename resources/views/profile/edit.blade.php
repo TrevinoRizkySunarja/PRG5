@@ -1,29 +1,16 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+{{-- resources/views/profile/edit.blade.php --}}
+<x-layout title="Profiel">
+    <div class="max-w-3xl mx-auto p-6 space-y-10">
+        <h1 class="text-2xl font-semibold">Mijn profiel</h1>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
+        @if (session('status'))
+            <div class="rounded-md border border-green-500/30 bg-green-500/10 px-4 py-2 text-green-200">
+                {{ session('status') }}
             </div>
+        @endif
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
-        </div>
+        @includeIf('profile.partials.update-profile-information-form')
+        @includeIf('profile.partials.update-password-form')
+        @includeIf('profile.partials.delete-user-form')
     </div>
-</x-app-layout>
+</x-layout>

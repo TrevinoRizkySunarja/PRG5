@@ -1,29 +1,57 @@
-{{-- resources/views/profile/edit.blade.php --}}
-<x-layout title="Profiel">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-gray-100">
-        <h1 class="text-2xl font-semibold mb-6">Mijn profiel</h1>
+{{-- resources/views/cards/edit.blade.php --}}
+<x-layout title="Kaart bewerken">
+    <div class="max-w-3xl mx-auto p-6 space-y-6">
+        <h1 class="text-2xl font-semibold">Kaart bewerken</h1>
 
-        @if (session('status'))
-            <div class="mb-6 rounded-md border border-green-700 bg-green-900/40 px-4 py-3 text-sm">
-                {{ session('status') }}
+        <form method="POST" action="{{ route('cards.update', $card) }}" class="space-y-6">
+            @csrf
+            @method('PUT')
+
+            <div>
+                <label class="block text-sm mb-1">Naam</label>
+                <input name="name" type="text" value="{{ old('name', $card->name) }}"
+                       class="w-full rounded-md bg-gray-900 border border-gray-700 px-3 py-2" required>
+                @error('name') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
-        @endif
 
-        <div class="space-y-10">
-            <section class="rounded-lg border border-gray-800 bg-gray-900/50 p-6">
-                <h2 class="text-lg font-medium mb-4">Profielgegevens</h2>
-                @include('profile.partials.update-profile-information-form')
-            </section>
+            <div>
+                <label class="block text-sm mb-1">Afbeelding URL</label>
+                <input name="image_url" type="url" value="{{ old('image_url', $card->image_url) }}"
+                       class="w-full rounded-md bg-gray-900 border border-gray-700 px-3 py-2">
+                @error('image_url') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
 
-            <section class="rounded-lg border border-gray-800 bg-gray-900/50 p-6">
-                <h2 class="text-lg font-medium mb-4">Wachtwoord wijzigen</h2>
-                @include('profile.partials.update-password-form')
-            </section>
+            <div>
+                <label class="block text-sm mb-1">Rarity</label>
+                <select name="rarity_id"
+                        class="w-full rounded-md bg-gray-900 border border-gray-700 px-3 py-2">
+                    <option value="">-- kies --</option>
+                    @foreach ($rarities as $rarity)
+                        <option value="{{ $rarity->id }}"
+                            @selected(old('rarity_id', $card->rarity_id) == $rarity->id)>
+                            {{ $rarity->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('rarity_id') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
 
-            <section class="rounded-lg border border-gray-800 bg-gray-900/50 p-6">
-                <h2 class="text-lg font-medium mb-4 text-red-300">Account verwijderen</h2>
-                @include('profile.partials.delete-user-form')
-            </section>
-        </div>
+            <div>
+                <label class="block text-sm mb-1">Beschrijving</label>
+                <textarea name="description" rows="5"
+                          class="w-full rounded-md bg-gray-900 border border-gray-700 px-3 py-2">{{ old('description', $card->description) }}</textarea>
+                @error('description') <p class="text-red-400 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="flex gap-3">
+                <button class="inline-flex items-center rounded-md bg-red-600 hover:bg-red-700 px-4 py-2">
+                    Opslaan
+                </button>
+                <a href="{{ route('cards.show', $card) }}"
+                   class="inline-flex items-center rounded-md bg-gray-800 hover:bg-gray-700 px-4 py-2">
+                    Annuleren
+                </a>
+            </div>
+        </form>
     </div>
 </x-layout>
