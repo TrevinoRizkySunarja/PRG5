@@ -10,7 +10,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RaritySeeder::class,
+            // ... andere seeders
         ]);
     }
+
 
 }

@@ -9,15 +9,11 @@ class RaritySeeder extends Seeder
 {
     public function run(): void
     {
-        $rows = [
-            ['name' => 'Common',    'rank' => 1],
-            ['name' => 'Uncommon',  'rank' => 2],
-            ['name' => 'Rare',      'rank' => 3],
-            ['name' => 'Legendary', 'rank' => 4],
-        ];
-
-        foreach ($rows as $r) {
-            Rarity::updateOrCreate(['name' => $r['name']], $r);
-        }
+        Rarity::upsert([
+            ['id' => 1, 'name' => 'Common',    'rank' => 1],
+            ['id' => 2, 'name' => 'Uncommon',  'rank' => 2],
+            ['id' => 3, 'name' => 'Rare',      'rank' => 3],
+            ['id' => 4, 'name' => 'Legendary', 'rank' => 4],
+        ], ['id'], ['name','rank']);
     }
 }

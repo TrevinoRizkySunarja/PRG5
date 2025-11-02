@@ -24,13 +24,19 @@
         </div>
 
         <div>
-            <label class="block font-medium">Rarity</label>
-            <select name="rarity_id" class="w-full border rounded p-2" required>
+            <label class="block text-sm font-medium mb-1">Rarity</label>
+            <select name="rarity_id" class="w-full rounded bg-gray-900 border border-gray-700">
                 <option value="">-- kies --</option>
-                @foreach ($rarities as $r)
-                    <option value="{{ $r->id }}" @selected(old('rarity_id') == $r->id)>{{ $r->name }}</option>
+                @foreach($rarities as $rarity)
+                    <option value="{{ $rarity->id }}" @selected(old('rarity_id') == $rarity->id)>
+                        {{ $rarity->name }}
+                    </option>
                 @endforeach
             </select>
+            @error('rarity_id')
+            <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
+            @enderror
+
         </div>
 
         <div>

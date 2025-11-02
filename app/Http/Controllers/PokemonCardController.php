@@ -8,157 +8,103 @@ use Illuminate\Http\Request;
 
 class PokemonCardController extends Controller
 {
-    /**
-     * Toon overzicht met filters (q, rarity) en paginatie.
-     * Publiek toegankelijk.
-     */
     public function index(Request $request)
     {
-        // Dropdown-data voor filters
-        $rarities = Rarity::orderBy('rank')->orderBy('name')->get();
+        $q      = trim($request->get('q',''));
+        $rarity = $request->get('rarity');
 
-        // Basisquery
-        $query = PokemonCard::with(['rarity', 'user']);
+        $cards = PokemonCard::query()
+            ->with(['rarity','user'])
+            ->when($q, fn($qr) => $qr->where(function($w) use ($q) {
+                $w->where('name','like',"%$q%")
+                    ->orWhere('description','like',"%$q%");
+            }))
+            ->when($rarity, fn($qr) => $qr->where('rarity_id',$rarity))
+            ->orderByDesc('created_at')
+            ->paginate(12)
+            ->withQueryString();
 
-        // Zoekterm in naam + beschrijving
-        if ($search = $request->input('q')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
+        $rarities = Rarity::orderBy('rank')->get();
 
-        // Filter op rarity
-        if ($rarityId = $request->input('rarity')) {
-            $query->where('rarity_id', $rarityId);
-        }
-
-        // Resultaten (laatst toegevoegd eerst)
-        $cards = $query->latest()->paginate(12)->withQueryString();
-
-        return view('cards.index', compact('cards', 'rarities'));
+        return view('cards.index', compact('cards','rarities'));
     }
 
-    /**
-     * Details-pagina: toont 1 kaart met alle relaties.
-     * Publiek toegankelijk.
-     */
     public function show(PokemonCard $card)
     {
-        $card->load(['rarity', 'user']);
+        $card->load(['rarity','user']);
         return view('cards.show', compact('card'));
     }
 
-    /**
-     * Formulier voor nieuwe kaart.
-     * Vereist login.
-     */
-    public function create() {
-        $rarities = \App\Models\Rarity::orderBy('rank')->orderBy('name')->get();
+//    public function __construct()
+//    {
+//        // prima zo:
+//        $this->middleware('auth')->except(['index','show']);
+//    }
+
+    public function create()
+    {
+        $rarities = Rarity::orderBy('rank')->get();  // haal alles op
         return view('cards.create', compact('rarities'));
     }
 
 
-    /**
-     * Sla nieuwe kaart op.
-     * Vereist login.
-     */
+
     public function store(Request $request)
     {
-        $this->mustBeLoggedIn();
-
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'image_url'   => ['nullable', 'url', 'max:2048'],
-            'rarity_id'   => ['required', 'exists:rarities,id'],
-            'description' => ['nullable', 'string'],
+            'name'        => ['required','string','max:255'],
+            'image_url'   => ['nullable','url','max:2048'],
+            'rarity_id'   => ['required','exists:rarities,id'],
+            'description' => ['nullable','string'],
         ]);
 
         $data['user_id'] = auth()->id();
+        $data['active']  = true;
 
         $card = PokemonCard::create($data);
 
-        return redirect()
-            ->route('cards.show', $card)
-            ->with('status', 'Pokémonkaart aangemaakt!');
+        return redirect()->route('cards.show', $card)->with('success','Kaart aangemaakt.');
     }
 
-    /**
-     * Formulier om kaart te bewerken.
-     * Alleen eigenaar of admin.
-     */
     public function edit(PokemonCard $card)
     {
-        $this->authorizeCardOwner($card);
+        $this->authorize('update', $card);
+        $rarities = Rarity::orderBy('rank')->get();
 
-        $rarities = Rarity::orderBy('rank')->orderBy('name')->get();
-
-        return view('cards.edit', compact('card', 'rarities'));
+        return view('cards.edit', compact('card','rarities'));
     }
 
-    /**
-     * Update kaart.
-     * Alleen eigenaar of admin.
-     */
+
     public function update(Request $request, PokemonCard $card)
     {
-        $this->authorizeCardOwner($card);
+        $this->authorize('update', $card);
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'image_url'   => ['nullable', 'url', 'max:2048'],
-            'rarity_id'   => ['required', 'exists:rarities,id'],
-            'description' => ['nullable', 'string'],
+            'name'        => ['required','string','max:255'],
+            'image_url'   => ['nullable','url','max:2048'],
+            'rarity_id'   => ['required','exists:rarities,id'],
+            'description' => ['nullable','string'],
         ]);
 
         $card->update($data);
 
-        return redirect()
-            ->route('cards.show', $card)
-            ->with('status', 'Pokémonkaart bijgewerkt!');
+        return redirect()->route('cards.show',$card)->with('success','Kaart bijgewerkt.');
     }
 
-    /**
-     * Verwijder kaart.
-     * Alleen eigenaar of admin.
-     */
     public function destroy(PokemonCard $card)
     {
-        $this->authorizeCardOwner($card);
-
+        $this->authorize('delete', $card);
         $card->delete();
-
-        return redirect()
-            ->route('cards.index')
-            ->with('status', 'Pokémonkaart verwijderd.');
+        return redirect()->route('cards.index')->with('success','Kaart verwijderd.');
     }
 
-    /* ===================== Helpers ===================== */
-
-    /**
-     * Zorgt dat een gebruiker is ingelogd; anders 403.
-     */
-    private function mustBeLoggedIn(): void
+    // POST /cards/{card}/toggle-active
+    public function toggleActive(PokemonCard $card)
     {
-        if (!auth()->check()) {
-            abort(403, 'Login vereist.');
-        }
-    }
+        $this->authorize('toggle', $card);
+        $card->active = ! $card->active;
+        $card->save();
 
-    /**
-     * Laat alleen de eigenaar of admin (role=1) bewerken/verwijderen.
-     */
-    private function authorizeCardOwner(PokemonCard $card): void
-    {
-        $user = auth()->user();
-
-        if (!$user) abort(403, 'Login vereist.');
-
-        $isOwner = $card->user_id === $user->id;
-        $isAdmin = (bool) ($user->role ?? false);
-
-        if (!$isOwner && !$isAdmin) {
-            abort(403, 'Je hebt geen rechten voor deze actie.');
-        }
+        return back()->with('success', 'Status omgeschakeld naar '.($card->active ? 'actief' : 'inactief'));
     }
 }
